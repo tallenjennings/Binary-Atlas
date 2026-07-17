@@ -11,7 +11,7 @@ import {
   getChildBinaries,
   getProperAncestorBinaries,
 } from '../lib/binaryAtlas';
-import type { Landmark } from '../lib/storage';
+import { isValidLandmark, type Landmark } from '../lib/storage';
 
 const SURFACE_OFFSET = 0.08;
 const LOCAL_VERTICAL_WINDOW = 4.5;
@@ -45,7 +45,7 @@ export function getVisibleLocationBinaries(
     getChildBinaries(selectedBinary).forEach((binary) => values.add(binary));
   }
   if (overlays.showSavedLandmarks) {
-    landmarks.forEach((landmark) => values.add(landmark.binary));
+    landmarks.filter(isValidLandmark).forEach((landmark) => values.add(landmark.binary));
   }
   return [...values];
 }
@@ -58,7 +58,7 @@ function toSurfacePoint(loc: BinaryLocation): PointTuple {
 
 function Marker({ loc, color = '#54e5ff' }: { loc: BinaryLocation; color?: string }) {
   return (
-    <mesh data-testid="atlas-marker" data-binary={loc.binary} position={toSurfacePoint(loc)}>
+    <mesh name={`atlas-marker:${loc.binary}`} position={toSurfacePoint(loc)}>
       <sphereGeometry args={[0.11, 24, 24]} />
       <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} />
     </mesh>
@@ -98,7 +98,13 @@ function Scene({
 
   const locations = useMemo(() => {
     const binaries = getVisibleLocationBinaries(selected.binary, landmarks, overlays);
-    return binaries.map((binary) => binaryToLocation(binary, selected.radius));
+    return binaries.flatMap((binary) => {
+      try {
+        return [binaryToLocation(binary, selected.radius)];
+      } catch {
+        return [];
+      }
+    });
   }, [landmarks, overlays, selected.binary, selected.radius]);
 
   const ancestorLocations = overlays.showAncestors

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { AtlasScene, DEFAULT_OVERLAYS, getVisibleLocationBinaries } from '../src/components/AtlasScene';
 import { binaryToLocation } from '../src/lib/binaryAtlas';
@@ -21,9 +21,9 @@ vi.mock('@react-three/drei', () => ({
 describe('AtlasScene overlays', () => {
   it('renders exactly one marker for binary 101 when overlays are disabled', () => {
     render(<AtlasScene selected={binaryToLocation('101')} landmarks={[]} overlays={DEFAULT_OVERLAYS} />);
-    const markers = screen.getAllByTestId('atlas-marker');
+    const markers = document.querySelectorAll('mesh[name^="atlas-marker:"]');
     expect(markers).toHaveLength(1);
-    expect(markers[0].getAttribute('data-binary')).toBe('101');
+    expect(markers[0].getAttribute('name')).toBe('atlas-marker:101');
   });
 
   it('derives proper ancestors for 101 only', () => {
